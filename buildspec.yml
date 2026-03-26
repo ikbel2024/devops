@@ -8,11 +8,11 @@ env:
 
 phases:
   install:
-  runtime-versions:
-    nodejs: 16  # ou 18 si l'image le supporte
-  commands:
-    - echo "Installation des dépendances"
-    - npm install --legacy-peer-deps
+    runtime-versions:
+      nodejs: 16  # ou 18 si l'image le supporte
+    commands:
+      - echo "Installation des dépendances"
+      - npm install --legacy-peer-deps
 
   pre_build:
     commands:
