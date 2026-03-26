@@ -9,17 +9,17 @@ env:
 phases:
   install:
     runtime-versions:
-      nodejs: 16  # ou 18 si l'image le supporte
+      nodejs: 16
     commands:
       - echo "Installation des dépendances"
       - npm install --legacy-peer-deps
 
   pre_build:
     commands:
-      - echo "Connexion à ECR"
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-      - REPO_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPO_URI
+      - echo "Skip ECR login pour test"
+      # - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      # - REPO_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      # - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPO_URI
 
   build:
     commands:
@@ -27,9 +27,9 @@ phases:
       - npm run build --prod
       - echo "Build Docker"
       - docker build -t $IMAGE_REPO_NAME .
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPO_URI:$IMAGE_TAG
+      # - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPO_URI:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo "Push Docker"
-      - docker push $REPO_URI:$IMAGE_TAG
+      - echo "Skip Docker push pour test"
+      # - docker push $REPO_URI:$IMAGE_TAG
