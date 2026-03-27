@@ -19,18 +19,20 @@ phases:
       - echo "Connexion à ECR"
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - REPO_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME
-      - echo "Repo URI = $REPO_URI"
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPO_URI
 
   build:
     commands:
       - echo "Build Angular"
       - npm run build --prod
-      - echo "Build Docker (amd64)"
-      - docker build --platform linux/amd64 -t $IMAGE_REPO_NAME .
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPO_URI:$IMAGE_TAG
+
+      - echo "Activation buildx"
+      - docker buildx create --use
+      - docker buildx inspect --bootstrap
+
+      - echo "Build & Push Docker (amd64)"
+      - docker buildx build --platform linux/amd64 -t $REPO_URI:$IMAGE_TAG --push .
 
   post_build:
     commands:
-      - echo "Push Docker vers ECR"
-      - docker push $REPO_URI:$IMAGE_TAG
+      - echo "Build terminé"
