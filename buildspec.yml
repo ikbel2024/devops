@@ -26,13 +26,12 @@ phases:
       - echo "Build Angular"
       - npm run build --prod
 
-      - echo "Activation buildx"
-      - docker buildx create --use
-      - docker buildx inspect --bootstrap
+      - echo "Build Docker (force amd64 via base image)"
+      - docker build -t $IMAGE_REPO_NAME .
 
-      - echo "Build & Push Docker (amd64)"
-      - docker buildx build --platform linux/amd64 -t $REPO_URI:$IMAGE_TAG --push .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPO_URI:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo "Build terminé"
+      - echo "Push Docker vers ECR"
+      - docker push $REPO_URI:$IMAGE_TAG
