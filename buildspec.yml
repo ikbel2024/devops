@@ -26,8 +26,8 @@ phases:
     commands:
       - echo "Build Angular"
       - npm run build --prod
-      - echo "Build Docker"
-      - docker build -t $IMAGE_REPO_NAME .
+      - echo "Build Docker (amd64)"
+      - docker build --platform linux/amd64 -t $IMAGE_REPO_NAME .
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPO_URI:$IMAGE_TAG
 
   post_build:
