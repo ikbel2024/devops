@@ -1,5 +1,5 @@
-# Forcer architecture compatible
-FROM --platform=linux/amd64 node:18 AS build
+# Stage 1 : Build Angular
+FROM node:16 AS build
 
 WORKDIR /app
 
@@ -7,12 +7,15 @@ COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
 COPY . .
-RUN npm run build --prod
 
-FROM --platform=linux/amd64 nginx:alpine
+# ⚠️ build Angular (compatible toutes versions)
+RUN npm run build || npm run build --prod
 
-# ⚠️ remplace par ton vrai nom Angular
-COPY --from=build /app/dist/angular-app /usr/share/nginx/html
+# Stage 2 : Nginx
+FROM nginx:alpine
+
+# Copier TOUT le contenu dist (évite erreur nom app)
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
