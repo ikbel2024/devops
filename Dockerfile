@@ -1,22 +1,15 @@
-# Stage 1 : Build Angular
-FROM node:16 AS build
-
+# --- ÉTAPE 1 : BUILD DU CODE SOURCE ---
+FROM node:18-alpine AS build-stage
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
-
+RUN npm install
 COPY . .
+# Commande qui génère le dossier /app/dist
+RUN npm run build 
 
-# ⚠️ build Angular (compatible toutes versions)
-RUN npm run build || npm run build --prod
-
-# Stage 2 : Nginx
-FROM nginx:alpine
-
-# Copier TOUT le contenu dist (évite erreur nom app)
-COPY --from=build /app/dist /usr/share/nginx/html
-
+# --- ÉTAPE 2 : SERVEUR DE PRODUCTION ---
+FROM nginx:stable-alpine
+# On copie uniquement le dossier /dist généré à l'étape 1 vers Nginx
+COPY --from=build-stage /app/dist /usr/share/nginx/html
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
