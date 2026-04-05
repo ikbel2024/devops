@@ -1,4 +1,4 @@
-# --- ÉTAPE 1 : BUILD DU CODE SOURCE ----
+# ---- ÉTAPE 1 : BUILD DU CODE SOURCE ----
 FROM node:18-alpine AS build-stage
 WORKDIR /app
 COPY package*.json ./
