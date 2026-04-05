@@ -1,37 +1,24 @@
 version: 0.2
 
-env:
-  variables:
-    AWS_REGION: eu-west-1
-    IMAGE_REPO_NAME: devops
-    IMAGE_TAG: latest
-
 phases:
-  install:
-    runtime-versions:
-      nodejs: 16
-    commands:
-      - echo "Installation des dépendances"
-      - npm install --legacy-peer-deps
-
   pre_build:
     commands:
-      - echo "Connexion à ECR"
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-      - REPO_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPO_URI
-
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - REPOSITORY_URI=723951822917.dkr.ecr.eu-west-1.amazonaws.com/mon-app-repo
+      - IMAGE_TAG=latest
   build:
     commands:
-      - echo "Build Angular"
-      - npm run build --prod
-
-      - echo "Build Docker (force amd64 via base image)"
-      - docker build -t $IMAGE_REPO_NAME .
-
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPO_URI:$IMAGE_TAG
-
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
   post_build:
     commands:
-      - echo "Push Docker vers ECR"
-      - docker push $REPO_URI:$IMAGE_TAG
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Updating Kubeconfig...
+      - aws eks update-kubeconfig --name devops-cluster --region $AWS_DEFAULT_REGION
+      - echo Deploying to Kubernetes...
+      - kubectl apply -f k8s/deployment.yaml
+      - kubectl rollout restart deployment/mon-app-deployment
